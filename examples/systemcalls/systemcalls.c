@@ -1,4 +1,8 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include "wait.h"
+#include <fcntl.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,7 +20,9 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int ret = system(cmd);
 
+    if (ret == -1) return false;
     return true;
 }
 
@@ -58,9 +64,18 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
-
+    pid_t child_pid = fork();
+    if (child_pid < 0) {
+        return false;
+    } else if (child_pid == 0) {
+        execv(command[0], command);
+        exit(1);
+    } else {
+        int ret;
+        wait(&ret);
+        return WIFEXITED(ret) && WEXITSTATUS(ret) == 0;
+    }
     va_end(args);
-
     return true;
 }
 
@@ -92,8 +107,31 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd < 0) { 
+        perror("open");
+        abort();
+    }
 
+    pid_t kidpid = fork();
+
+    if (kidpid == -1) {
+        return false;
+    } else if (kidpid == 0) {
+        if (dup2(fd, 1) < 0) { 
+            return false;
+        }
+        close(fd);
+        execv(command[0], command);
+        return false;
+    } else {
+        close(fd);
+        int ret;
+        if (waitpid(kidpid, &ret, 0) == -1) {
+            return false;
+        }
+        return WIFEXITED(ret) && WEXITSTATUS(ret) == 0;
+        /* do whatever the parent wants to do. */
+    }
     va_end(args);
-
-    return true;
 }
