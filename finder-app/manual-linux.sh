@@ -98,7 +98,7 @@ sudo mknod -m 600 ${OUTDIR}/rootfs/dev/console c 5 1
 sudo mknod -m 600 ${OUTDIR}/rootfs/dev/null c 1 3
 
 # TODO: Clean and build the writer utility
-cd $(dirname "$(find /home/ubuntu/Desktop/ -name manual-linux.sh)")
+cd $FINDER_APP_DIR
 make CROSS_COMPILE=${CROSS_COMPILE} clean && make CROSS_COMPILE=${CROSS_COMPILE}
 
 # TODO: Copy the finder related scripts and executables to the /home directory
