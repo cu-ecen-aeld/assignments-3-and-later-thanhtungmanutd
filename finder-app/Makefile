@@ -1,11 +1,15 @@
-ifdef CROSS_COMPILE
-	compile_prefix := ${CROSS_COMPILE}
-else
-	compile_prefix := 
-endif
+CC := $(CROSS_COMPILE)gcc
+CFLAGS := -Wall -Werror
 
-all: 
-	${compile_prefix}gcc -o writer writer.c
+.PHONY: all clean
+
+all: writer
+
+writer: writer.o
+	$(CC) $(CFLAGS) -o writer writer.o
+
+writer.o: writer.c
+	$(CC) $(CFLAGS) -c writer.c
 
 clean:
-	rm -rf writer
+	rm -f writer writer.o
