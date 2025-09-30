@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 
 #define OUTFILE "/var/tmp/aesdsocketdata"
-uint8_t running;
+volatile sig_atomic_t running;
 
 void handle_signal(int sig)  {
     if (sig == SIGINT || sig == SIGTERM) {
@@ -101,7 +101,7 @@ int main(int argc, char **args) {
 
     while(running) {
         struct sockaddr clientaddr;
-        socklen_t clientaddr_len;
+        socklen_t clientaddr_len = 0;
         char ipaddr[INET_ADDRSTRLEN];
         char buff[1024];
         
